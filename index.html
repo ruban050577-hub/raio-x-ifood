@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raio-X Financeiro iFood</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:       #ffffff;
+    --bg2:      #f5f5f4;
+    --bg3:      #eeede8;
+    --border:   rgba(0,0,0,0.12);
+    --border2:  rgba(0,0,0,0.22);
+    --text:     #1a1a18;
+    --text2:    #5f5e5a;
+    --text3:    #888780;
+    --radius:   8px;
+    --radius-lg:12px;
+    --font:     -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:    #1a1a18;
+      --bg2:   #242422;
+      --bg3:   #2c2c2a;
+      --border:rgba(255,255,255,0.12);
+      --border2:rgba(255,255,255,0.22);
+      --text:  #f0efe8;
+      --text2: #b4b2a9;
+      --text3: #888780;
+    }
+  }
+  body {
+    font-family: var(--font);
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  /* cards */
+  .card  { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:12px; }
+  .sec   { background:var(--bg2); border-radius:var(--radius); padding:10px 12px; }
+  .g2    { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .g3    { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .g6    { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:7px; }
+  .mc    { background:var(--bg2); border-radius:var(--radius); padding:10px 12px; }
+  .mc .lb{ font-size:11px; color:var(--text2); margin-bottom:3px; }
+  .mc .vl{ font-size:17px; font-weight:500; }
+  .mc .sb{ font-size:10px; color:var(--text3); margin-top:2px; }
+  .st    { font-size:13px; font-weight:500; margin-bottom:10px; color:var(--text); }
+
+  /* barra de progresso */
+  .bw    { height:5px; background:var(--border); border-radius:3px; overflow:hidden; margin-top:3px; }
+  .bf    { height:100%; border-radius:3px; }
+
+  /* tabela */
+  .tbl   { width:100%; font-size:12px; border-collapse:collapse; table-layout:fixed; }
+  .tbl th{ font-weight:500; color:var(--text2); text-align:left; padding:5px 6px; border-bottom:0.5px solid var(--border); font-size:11px; }
+  .tbl td{ padding:5px 6px; border-bottom:0.5px solid var(--border); color:var(--text); }
+  .tbl tr:last-child td { border-bottom:none; }
+  .r     { text-align:right; }
+
+  /* alertas */
+  .al  { padding:9px 12px; border-radius:var(--radius); margin-bottom:8px; font-size:12px; line-height:1.5; }
+  .aw  { background:#FAEEDA; color:#633806; border-left:3px solid #BA7517; }
+  .ag  { background:#E1F5EE; color:#085041; border-left:3px solid #1D9E75; }
+  .ar  { background:#FCEBEB; color:#791F1F; border-left:3px solid #E24B4A; }
+  .ai  { background:#E6F1FB; color:#042C53; border-left:3px solid #378ADD; }
+
+  /* pills */
+  .pill{ display:inline-block; font-size:10px; font-weight:500; padding:2px 8px; border-radius:var(--radius); }
+  .pg  { background:#E1F5EE; color:#085041; }
+  .pr  { background:#FCEBEB; color:#791F1F; }
+  .pa  { background:#FAEEDA; color:#633806; }
+
+  /* upload */
+  .uz  { border:1.5px dashed var(--border2); border-radius:var(--radius-lg); padding:20px; text-align:center; cursor:pointer; transition:background .15s; }
+  .uz:hover { background:var(--bg2); }
+  .uz.ok    { border-color:#1D9E75; background:#E1F5EE; }
+  .uz input { display:none; }
+
+  /* botão */
+  button.prim {
+    background:var(--text); color:var(--bg);
+    border:none; border-radius:var(--radius);
+    padding:10px 24px; font-size:13px; font-weight:500;
+    cursor:pointer; transition:opacity .15s;
+  }
+  button.prim:hover   { opacity:.85; }
+  button.prim:disabled{ opacity:.35; cursor:not-allowed; }
+  button.sec {
+    background:transparent; color:var(--text);
+    border:0.5px solid var(--border2); border-radius:var(--radius);
+    padding:5px 14px; font-size:12px; cursor:pointer;
+  }
+  button.sec:hover { background:var(--bg2); }
+
+  /* waterfall total */
+  .wt { background:var(--bg2); border-radius:var(--radius); padding:8px 10px; display:flex; justify-content:space-between; font-size:13px; font-weight:500; margin-top:4px; }
+
+  /* split bar */
+  .split-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; margin:6px 0; }
+  .leg       { display:flex; gap:12px; margin-top:4px; }
+  .leg span  { font-size:10px; color:var(--text2); display:flex; align-items:center; gap:4px; }
+  .dot       { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .divider   { height:0.5px; background:var(--border); margin:10px 0; }
+  .nt        { font-size:10px; color:var(--text3); font-style:italic; }
+
+  /* header do app */
+  .app-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:1.5rem;
+    padding-bottom:1rem;
+    border-bottom:0.5px solid var(--border);
+  }
+  .logo-text { font-size:15px; font-weight:500; }
+  .logo-sub  { font-size:11px; color:var(--text2); margin-top:1px; }
+  .hidden    { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div>
+      <p class="logo-text">Raio-X Financeiro</p>
+      <p class="logo-sub">Análise de resultado iFood</p>
+    </div>
+    <button class="sec hidden" id="btn-reset" onclick="resetar()">Nova análise</button>
+  </div>
+
+  <!-- UPLOAD -->
+  <div id="su">
+    <div class="card" style="margin-bottom:12px">
+      <p class="st">1. Relatório de pedidos</p>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Portal iFood → Relatórios → Pedidos → Exportar Excel</p>
+      <div class="uz" id="zp" onclick="document.getElementById('ip').click()">
+        <input type="file" id="ip" accept=".xlsx,.xls" onchange="hf('ped',this)">
+        <p style="font-size:13px;color:var(--text2)" id="lp">Clique para selecionar o arquivo</p>
+        <p style="font-size:11px;color:var(--text3);margin-top:4px">relatorio-pedidos_....xlsx</p>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <p class="st">2. Relatório de conciliação</p>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Portal iFood → Financeiro → Conciliação → Exportar Excel</p>
+      <div class="uz" id="zc" onclick="document.getElementById('ic').click()">
+        <input type="file" id="ic" accept=".xlsx,.xls" onchange="hf('conc',this)">
+        <p style="font-size:13px;color:var(--text2)" id="lc">Clique para selecionar o arquivo</p>
+        <p style="font-size:11px;color:var(--text3);margin-top:4px">competencia_AAAA-MM.xlsx</p>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button class="prim" id="btn" disabled onclick="analisar()">Analisar relatórios</button>
+      <p style="font-size:11px;color:var(--text3);margin-top:10px">Processado localmente — nenhum dado é enviado para servidores.</p>
+    </div>
+    <div id="err" class="al ar" style="margin-top:14px;display:none"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="sl" class="hidden" style="text-align:center;padding:60px 0">
+    <p style="font-size:14px;color:var(--text2)" id="lmsg">Lendo os arquivos...</p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="sd" class="hidden">
+
+    <div style="background:var(--bg2);border-left:3px solid var(--text);border-radius:0 var(--radius) var(--radius) 0;padding:12px 16px;margin-bottom:14px">
+      <p style="font-size:14px;font-weight:500">De cada <strong>R$&nbsp;100</strong> vendidos no iFood, sobraram <strong id="d-p100" style="color:#1D9E75">—</strong> para o restaurante.</p>
+      <p style="font-size:11px;color:var(--text2);margin-top:3px">Taxa efetiva real: <strong id="d-taxa2">—</strong> &middot; <span id="d-comp">—</span></p>
+    </div>
+
+    <div class="g6" style="margin-bottom:14px">
+      <div class="mc"><p class="lb">Venda bruta</p><p class="vl" id="k-vb">—</p><p class="sb">total clientes</p></div>
+      <div class="mc"><p class="lb">Total recebido</p><p class="vl" id="k-tr" style="color:#1D9E75">—</p><p class="sb">banco + direto</p></div>
+      <div class="mc"><p class="lb">Taxa efetiva</p><p class="vl" id="k-te" style="color:#D85A30">—</p><p class="sb">do faturamento</p></div>
+      <div class="mc"><p class="lb">Pedidos</p><p class="vl" id="k-tp">—</p><p class="sb" id="k-cs">—</p></div>
+      <div class="mc"><p class="lb">Ticket médio</p><p class="vl" id="k-tm">—</p><p class="sb">por pedido</p></div>
+      <div class="mc"><p class="lb">Vales direto</p><p class="vl" id="k-dir">—</p><p class="sb" id="k-ds">—</p></div>
+    </div>
+
+    <div class="g2" style="margin-bottom:12px">
+      <div class="card">
+        <p class="st">Para onde foi o dinheiro</p>
+        <div id="d-wf"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card"><p class="st">Repasses esperados</p><div id="d-rep"></div></div>
+        <div class="card"><p class="st">Alertas do período</p><div id="d-alert"></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <p class="st">Promoções — investimento loja vs iFood</p>
+      <div class="g2" style="margin-bottom:12px">
+        <div style="border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px">
+          <p style="font-size:11px;color:var(--text2);margin-bottom:6px">Investimento da loja</p>
+          <p style="font-size:20px;font-weight:500;color:#D85A30" id="p-linv">—</p>
+          <div class="g2" style="gap:6px;margin-top:8px">
+            <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% do cardápio</p><p style="font-size:14px;font-weight:500" id="p-lpct">—</p></div>
+            <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% das promoções</p><p style="font-size:14px;font-weight:500" id="p-lsplit">—</p></div>
+          </div>
+        </div>
+        <div style="border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px">
+          <p style="font-size:11px;color:var(--text2);margin-bottom:6px">Subsídio do iFood <span class="nt">(ao cliente)</span></p>
+          <p style="font-size:20px;font-weight:500;color:#378ADD" id="p-iinv">—</p>
+          <div class="g2" style="gap:6px;margin-top:8px">
+            <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% do cardápio</p><p style="font-size:14px;font-weight:500" id="p-ipct">—</p></div>
+            <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% das promoções</p><p style="font-size:14px;font-weight:500" id="p-isplit">—</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px">
+          <span>Quem financia as promoções</span><span id="p-tot-pct">—</span>
+        </div>
+        <div class="split-bar" id="p-bar"></div>
+        <div class="leg">
+          <span><span class="dot" style="background:#D85A30"></span>Loja <span id="p-lleg" style="font-weight:500;margin-left:2px">—</span></span>
+          <span><span class="dot" style="background:#378ADD"></span>iFood <span id="p-ileg" style="font-weight:500;margin-left:2px">—</span></span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <p style="font-size:12px;color:var(--text2);margin:10px 0 8px">Impacto das promoções no ticket médio</p>
+      <div class="g3" style="margin-bottom:8px">
+        <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:2px">Ticket c/ desconto</p><p style="font-size:15px;font-weight:500" id="p-tcom">—</p></div>
+        <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:2px">Ticket s/ desconto</p><p style="font-size:15px;font-weight:500" id="p-tsem">—</p></div>
+        <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:2px">Redução no ticket</p><p style="font-size:15px;font-weight:500;color:#D85A30" id="p-tdif">—</p></div>
+      </div>
+      <div id="p-insight"></div>
+    </div>
+
+    <div class="g2" style="margin-bottom:12px">
+      <div class="card">
+        <p class="st">iFood Ads</p>
+        <p style="font-size:20px;font-weight:500;margin-bottom:8px" id="a-total">—</p>
+        <div class="g2" style="gap:6px;margin-bottom:10px">
+          <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% da venda bruta</p><p style="font-size:14px;font-weight:500;color:#D85A30" id="a-pvb">—</p></div>
+          <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% do cardápio</p><p style="font-size:14px;font-weight:500" id="a-pcd">—</p></div>
+        </div>
+        <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:2px">Custo médio por pedido no mês</p><p style="font-size:15px;font-weight:500" id="a-cpp">—</p></div>
+        <div id="a-insight" style="margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <p class="st">Taxa de entrega</p>
+        <p style="font-size:20px;font-weight:500;margin-bottom:8px" id="f-total">—</p>
+        <div class="g2" style="gap:6px;margin-bottom:10px">
+          <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">% da venda bruta</p><p style="font-size:14px;font-weight:500" id="f-pvb">—</p></div>
+          <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:1px">Frete médio</p><p style="font-size:14px;font-weight:500" id="f-med">—</p></div>
+        </div>
+        <div class="g2" style="gap:6px">
+          <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:2px">Pedidos c/ frete</p><p style="font-size:14px;font-weight:500" id="f-ncf">—</p></div>
+          <div class="sec"><p style="font-size:10px;color:var(--text2);margin-bottom:2px">Frete grátis</p><p style="font-size:14px;font-weight:500" id="f-nfg">—</p><p class="nt" id="f-fpct">—</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <p class="st">Desempenho por dia da semana</p>
+      <table class="tbl">
+        <thead><tr><th>Dia</th><th class="r">Pedidos</th><th class="r">Faturamento</th><th class="r">Ticket médio</th><th class="r">Taxa efetiva</th></tr></thead>
+        <tbody id="d-dow"></tbody>
+      </table>
+    </div>
+
+    <div class="g2" style="margin-bottom:12px">
+      <div class="card">
+        <p class="st">Por turno</p>
+        <table class="tbl">
+          <thead><tr><th>Turno</th><th class="r">Pedidos</th><th class="r">Ticket</th><th class="r">Taxa</th></tr></thead>
+          <tbody id="d-turno"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <p class="st">Pico de horário — top 6</p>
+        <div id="d-hora"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="st">Tipo de entrega — custo comparado</p>
+      <table class="tbl">
+        <thead><tr><th>Tipo</th><th class="r">Pedidos</th><th class="r">Faturamento</th><th class="r">Ticket</th><th class="r">Taxa efetiva</th></tr></thead>
+        <tbody id="d-log"></tbody>
+      </table>
+      <div id="d-log-i" style="margin-top:10px"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const brl=v=>'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=v=>parseFloat(v).toFixed(1)+'%';
+const $=id=>document.getElementById(id);
+let files={ped:null,conc:null};
+
+function parseDateBR(str){
+  if(!str)return new Date(NaN);
+  const m=String(str).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})[\sT](\d{2}):(\d{2}):(\d{2})/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+m[6]);
+  return new Date(NaN);
+}
+
+async function readXlsx(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'});res(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null}));}catch(err){rej(err);}};
+    r.onerror=rej;r.readAsArrayBuffer(file);
+  });
+}
+
+function hf(t,inp){
+  if(!inp.files[0])return;
+  files[t]=inp.files[0];
+  const l=t==='ped'?$('lp'):$('lc'),z=t==='ped'?$('zp'):$('zc');
+  l.textContent=inp.files[0].name;l.style.color='#1D9E75';z.classList.add('ok');
+  $('btn').disabled=!(files.ped&&files.conc);
+}
+
+function resetar(){
+  files={ped:null,conc:null};
+  $('su').classList.remove('hidden');['sl','sd'].forEach(i=>$(i).classList.add('hidden'));
+  $('btn-reset').classList.add('hidden');
+  [['lp','zp'],['lc','zc']].forEach(([l,z])=>{$(l).textContent='Clique para selecionar o arquivo';$(l).style.color='';$(z).classList.remove('ok');});
+  $('btn').disabled=true;$('err').style.display='none';
+}
+
+function showErr(m){$('su').classList.remove('hidden');$('sl').classList.add('hidden');const e=$('err');e.textContent=m;e.style.display='block';}
+
+const DIA_NOME={0:'Domingo',1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'};
+const DIA_ORDER=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const LOG_LABEL={'SELF_DELIVERY_PARTIAL_AREA':'Entrega própria','ENTREGA FLEX':'Entrega Flex (iFood)','SOB DEMANDA ON':'Sob Demanda'};
+const COL_PED=['ID COMPLETO DO PEDIDO','NOME DA LOJA','DATA E HORA DO PEDIDO','TURNO','STATUS FINAL DO PEDIDO','VALOR DOS ITENS (R$)','TOTAL PAGO PELO CLIENTE (R$)','TAXA DE ENTREGA PAGA PELO CLIENTE (R$)','INCENTIVO PROMOCIONAL DO IFOOD (R$)','INCENTIVO PROMOCIONAL DA LOJA (R$)','TAXAS E COMISSOES (R$)','VALOR LIQUIDO (R$)','FORMA DE PAGAMENTO','PRODUTO LOGISTICO'];
+const COL_CONC=['descricao_lancamento','valor','impacto_no_repasse','fato_gerador','data_repasse_esperada'];
+
+function parse(pR,cR){
+  const pC=Object.keys(pR[0]||{}),cC=Object.keys(cR[0]||{});
+  if(COL_PED.some(c=>!pC.includes(c)))throw new Error('Arquivo de pedidos não reconhecido. Verifique se enviou o arquivo correto.');
+  if(COL_CONC.some(c=>!cC.includes(c)))throw new Error('Arquivo de conciliação não reconhecido. Verifique se enviou o arquivo correto.');
+
+  const STATUS_OK=new Set(['CONCLUIDO','CANCELAMENTO PARCIAL']);
+  const val=pR.filter(r=>STATUS_OK.has(r['STATUS FINAL DO PEDIDO']));
+  const can=pR.filter(r=>r['STATUS FINAL DO PEDIDO']==='CANCELADO');
+  if(!val.length)throw new Error('Nenhum pedido válido encontrado.');
+
+  val.forEach(r=>{const d=parseDateBR(r['DATA E HORA DO PEDIDO']);r._dt=d;r._dia=isNaN(d)?null:DIA_NOME[d.getDay()];r._hora=isNaN(d)?null:d.getHours();});
+
+  const n=v=>Number(v)||0;
+  const sum=(a,k)=>a.reduce((s,r)=>s+n(r[k]),0);
+  const avg=(a,k)=>a.length?sum(a,k)/a.length:0;
+
+  const dir=val.filter(r=>n(r['VALOR LIQUIDO (R$)'])<0);
+  const csim=cR.filter(r=>r['impacto_no_repasse']==='SIM');
+
+  const vb=sum(val,'TOTAL PAGO PELO CLIENTE (R$)');
+  const vi=sum(val,'VALOR DOS ITENS (R$)');
+  const np=val.length;
+
+  const repBruto=csim.reduce((s,r)=>s+n(r['valor']),0);
+  const subsidioR=csim.filter(r=>/custeada pelo iFood/.test(r['descricao_lancamento']||'')).reduce((s,r)=>s+n(r['valor']),0);
+  const repasseR=repBruto-subsidioR;
+  const dirV=sum(dir,'TOTAL PAGO PELO CLIENTE (R$)');
+  const totalR=repasseR+dirV;
+  const totalDesc=vb-totalR;
+  const taxa=totalDesc/vb*100;
+  const p100=totalR/vb*100;
+
+  const sd=pat=>csim.filter(r=>pat.test(r['descricao_lancamento']||'')).reduce((s,r)=>s+n(r['valor']),0);
+  const comm=sd(/Comissão/),frsd=sd(/Solicitação de entrega|Taxa entrega iFood/);
+  const txtr=sd(/Taxa de transação/),txsv=sd(/Taxa de serviço/);
+  const adsRaw=sd(/anúncios/),mens=sd(/Mensalidade/),subd=sd(/custeada pelo iFood/);
+  const adsT=Math.abs(adsRaw);
+
+  const repM={};
+  cR.filter(r=>r['descricao_lancamento']==='Entrada Financeira').forEach(r=>{const k=r['data_repasse_esperada']||'';repM[k]=(repM[k]||0)+n(r['valor']);});
+  const repasses=Object.entries(repM).map(([d,v])=>({d,v})).sort((a,b)=>a.d.localeCompare(b.d));
+
+  const invL=sum(val,'INCENTIVO PROMOCIONAL DA LOJA (R$)');
+  const subI=sum(val,'INCENTIVO PROMOCIONAL DO IFOOD (R$)');
+  const totP=invL+subI;
+  const cpd=val.filter(r=>n(r['INCENTIVO PROMOCIONAL DA LOJA (R$)'])>0);
+  const spd=val.filter(r=>n(r['INCENTIVO PROMOCIONAL DA LOJA (R$)'])===0);
+  const tCom=avg(cpd,'TOTAL PAGO PELO CLIENTE (R$)'),tSem=avg(spd,'TOTAL PAGO PELO CLIENTE (R$)');
+  const dTk=tSem-tCom;
+
+  const frT=sum(val,'TAXA DE ENTREGA PAGA PELO CLIENTE (R$)');
+  const pCF=val.filter(r=>n(r['TAXA DE ENTREGA PAGA PELO CLIENTE (R$)'])>0);
+  const pFG=val.filter(r=>n(r['TAXA DE ENTREGA PAGA PELO CLIENTE (R$)'])===0);
+
+  const dowMap={};
+  val.forEach(r=>{const d=r._dia;if(!d)return;if(!dowMap[d])dowMap[d]={n:0,fat:0,liq:0};dowMap[d].n++;dowMap[d].fat+=n(r['TOTAL PAGO PELO CLIENTE (R$)']);dowMap[d].liq+=n(r['VALOR LIQUIDO (R$)']);});
+  const dow=DIA_ORDER.map(d=>{const m=dowMap[d];if(!m)return null;return{d,n:m.n,fat:m.fat,tk:m.fat/m.n,liq:m.liq,tx:(1-m.liq/m.fat)*100};}).filter(Boolean);
+
+  const hMap={};
+  val.forEach(r=>{const h=r._hora;if(h==null)return;if(!hMap[h])hMap[h]={n:0,fat:0};hMap[h].n++;hMap[h].fat+=n(r['TOTAL PAGO PELO CLIENTE (R$)']);});
+  const horas=Object.entries(hMap).map(([h,m])=>({h:+h,n:m.n,fat:m.fat,tk:m.fat/m.n})).sort((a,b)=>b.n-a.n);
+
+  const tMap={};
+  val.forEach(r=>{const t=r['TURNO']||'OUTROS';if(!tMap[t])tMap[t]={n:0,fat:0,liq:0};tMap[t].n++;tMap[t].fat+=n(r['TOTAL PAGO PELO CLIENTE (R$)']);tMap[t].liq+=n(r['VALOR LIQUIDO (R$)']);});
+  const turnos=Object.entries(tMap).map(([t,m])=>({t,n:m.n,fat:m.fat,tk:m.fat/m.n,liq:m.liq,tx:(1-m.liq/m.fat)*100}));
+
+  const lMap={};
+  val.forEach(r=>{const l=r['PRODUTO LOGISTICO']||'OUTROS';if(!lMap[l])lMap[l]={n:0,fat:0,liq:0};lMap[l].n++;lMap[l].fat+=n(r['TOTAL PAGO PELO CLIENTE (R$)']);lMap[l].liq+=n(r['VALOR LIQUIDO (R$)']);});
+  const logs=Object.entries(lMap).map(([l,m])=>({tipo:LOG_LABEL[l]||l,n:m.n,fat:m.fat,tk:m.fat/m.n,liq:m.liq,tx:(1-m.liq/m.fat)*100})).sort((a,b)=>b.fat-a.fat);
+
+  const nome=val[0]['NOME DA LOJA']||'Loja';
+  const dts=val.map(r=>r._dt).filter(d=>!isNaN(d));
+  const fmtD=(d,yr)=>d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',...(yr?{year:'numeric'}:{})});
+  const di=dts.length?fmtD(new Date(Math.min(...dts)),false):'';
+  const dfin=dts.length?fmtD(new Date(Math.max(...dts)),true):'';
+  const comp=cR[0]?.['competencia']||'';
+
+  return{nome,di,df:dfin,comp,vb,vi,np,tm:vb/np,repasseR,subsidioR,dirV,dirN:dir.length,totalR,totalDesc,taxa,p100,
+    canN:can.length,nAll:pR.length,valCan:sum(can,'TOTAL PAGO PELO CLIENTE (R$)'),
+    comm,frsd,txtr,txsv,adsT,mens,subd,repasses,
+    invL,subI,totP,cpdN:cpd.length,
+    pctLcard:invL/vi*100,pctIcard:subI/vi*100,pctTcard:totP/vi*100,
+    pctLtot:totP>0?invL/totP*100:0,pctItot:totP>0?subI/totP*100:0,
+    tCom,tSem,dTk,impP:dTk*cpd.length,
+    adsPvb:adsT/vb*100,adsPcd:adsT/vi*100,adsCpp:adsT/np,
+    frT,frPvb:frT/vb*100,frM:avg(pCF,'TAXA DE ENTREGA PAGA PELO CLIENTE (R$)'),
+    frCF:pCF.length,frFG:pFG.length,frPctFG:pFG.length/np*100,
+    dow,horas,turnos,logs};
+}
+
+function render(r){
+  $('su').classList.add('hidden');$('sl').classList.add('hidden');$('sd').classList.remove('hidden');$('btn-reset').classList.remove('hidden');
+  $('d-p100').textContent=`R$\u00a0${r.p100.toFixed(2)}`;$('d-taxa2').textContent=pct(r.taxa);
+  $('d-comp').textContent=r.comp?`Competência ${r.comp} · ${r.nome}`:'';
+  $('k-vb').textContent=brl(r.vb);$('k-tr').textContent=brl(r.totalR);$('k-te').textContent=pct(r.taxa);
+  $('k-tp').textContent=r.np.toLocaleString('pt-BR');$('k-cs').textContent=`${r.canN} cancelados`;
+  $('k-tm').textContent=brl(r.tm);$('k-dir').textContent=brl(r.dirV);$('k-ds').textContent=`${r.dirN} pedidos (vales)`;
+
+  const wi=[{l:'(+) Venda bruta',v:r.vb,p:100,pos:true},{l:'(−) Comissão iFood',v:r.comm,p:Math.abs(r.comm/r.vb*100),pos:false},{l:'(−) iFood Ads',v:r.adsT,p:r.adsPvb,pos:false},{l:'(−) Taxa de transação',v:r.txtr,p:Math.abs(r.txtr/r.vb*100),pos:false},{l:'(−) Frete sob demanda',v:r.frsd,p:Math.abs(r.frsd/r.vb*100),pos:false},{l:'(−) Taxa de serviço',v:r.txsv,p:Math.abs(r.txsv/r.vb*100),pos:false}];
+  if(r.mens<0)wi.push({l:'(−) Mensalidade',v:r.mens,p:Math.abs(r.mens/r.vb*100),pos:false});
+  $('d-wf').innerHTML=wi.map(i=>`<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="color:var(--text2)">${i.l}</span><span style="color:${i.pos?'#1D9E75':'#A32D2D'};font-weight:500">${brl(Math.abs(i.v))}</span></div><div class="bw"><div class="bf" style="width:${Math.min(i.p,100)}%;background:${i.pos?'#1D9E75':'#E24B4A'}"></div></div></div>`).join('')+`<div style="margin:8px 0 3px;padding:6px 8px;background:#E6F1FB;border-radius:var(--radius);display:flex;justify-content:space-between;font-size:11px"><span style="color:#042C53">Subsídio iFood → cliente</span><span style="color:#042C53;font-weight:500">${brl(r.subsidioR)}</span></div><p class="nt" style="padding-left:4px;margin-bottom:7px">Desconto dado ao cliente — não entra na receita do restaurante</p><div class="wt"><span>Repasse real (banco)</span><span style="color:#1D9E75">${brl(r.repasseR)}</span></div>`+(r.dirV>0?`<div class="wt" style="margin-top:4px"><span>Total real recebido</span><span style="color:#1D9E75">${brl(r.totalR)}</span></div>`:'');
+
+  $('d-rep').innerHTML=r.repasses.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text2)">${x.d}</span><span style="font-weight:500">${brl(x.v)}</span></div>`).join('')||'<p style="font-size:12px;color:var(--text3)">Nenhum repasse encontrado</p>';
+
+  const al=[];
+  if(r.adsT&&r.adsT>Math.abs(r.frsd))al.push({c:'ar',t:`iFood Ads (${brl(r.adsT)}) é o 2º maior custo, acima do frete. Avalie o retorno das campanhas.`});
+  if(r.subsidioR>0)al.push({c:'ai',t:`O iFood subsidiou ${brl(r.subsidioR)} em promoções para clientes. Esse valor vai ao cliente como desconto — não é receita sua.`});
+  const prop=r.logs.find(l=>l.tipo==='Entrega própria'),flex=r.logs.find(l=>l.tipo==='Entrega Flex (iFood)');
+  if(prop&&flex&&prop.tx<flex.tx-5)al.push({c:'ag',t:`Entrega própria tem taxa de ${pct(prop.tx)} vs ${pct(flex.tx)} da Entrega Flex. Você está no modelo mais eficiente.`});
+  if(r.canN>0)al.push({c:'aw',t:`${r.canN} pedido(s) cancelado(s) — ${brl(r.valCan)} em receita não realizada.`});
+  $('d-alert').innerHTML=al.map(a=>`<div class="al ${a.c}">${a.t}</div>`).join('')||'<p style="font-size:12px;color:var(--text3)">Nenhum alerta gerado</p>';
+
+  $('p-linv').textContent=brl(r.invL);$('p-lpct').textContent=pct(r.pctLcard);$('p-lsplit').textContent=pct(r.pctLtot);
+  $('p-iinv').textContent=brl(r.subI);$('p-ipct').textContent=pct(r.pctIcard);$('p-isplit').textContent=pct(r.pctItot);
+  $('p-tot-pct').textContent=`${pct(r.pctTcard)} do cardápio no total`;
+  $('p-bar').innerHTML=`<div style="width:${r.pctLtot}%;background:#D85A30;height:100%"></div><div style="width:${r.pctItot}%;background:#378ADD;height:100%"></div>`;
+  $('p-lleg').textContent=pct(r.pctLtot);$('p-ileg').textContent=pct(r.pctItot);
+  $('p-tcom').textContent=brl(r.tCom);$('p-tsem').textContent=brl(r.tSem);$('p-tdif').textContent=`− ${brl(r.dTk)}`;
+  $('p-insight').innerHTML=`<div class="al aw">Com ${r.cpdN} pedidos promocionais e redução de ${brl(r.dTk)} no ticket, o impacto estimado em receita foi de ${brl(r.impP)}. Analise se o volume gerado compensa esse valor.</div>`;
+
+  $('a-total').textContent=brl(r.adsT);$('a-pvb').textContent=pct(r.adsPvb);$('a-pcd').textContent=pct(r.adsPcd);$('a-cpp').textContent=brl(r.adsCpp);
+  const ac=r.adsPvb>4?'ar':r.adsPvb>2.5?'aw':'ag';
+  $('a-insight').innerHTML=`<div class="al ${ac}">${r.adsPvb>4?`Ads acima de 4% da venda bruta. Custo por pedido: ${brl(r.adsCpp)}.`:r.adsPvb>2.5?`Ads em ${pct(r.adsPvb)} da venda bruta. Monitore o custo por pedido (${brl(r.adsCpp)}).`:`Ads em ${pct(r.adsPvb)} da venda bruta — patamar controlado.`}</div>`;
+
+  $('f-total').textContent=brl(r.frT);$('f-pvb').textContent=pct(r.frPvb);$('f-med').textContent=brl(r.frM);
+  $('f-ncf').textContent=`${r.frCF} pedidos`;$('f-nfg').textContent=`${r.frFG} pedidos`;$('f-fpct').textContent=`${pct(r.frPctFG)} do total`;
+
+  const mF=Math.max(...r.dow.map(d=>d.fat));
+  $('d-dow').innerHTML=r.dow.map(d=>`<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:${d.fat/mF*100}%;height:100%;background:var(--text);border-radius:2px"></div></div>${d.d}</div></td><td class="r">${d.n}</td><td class="r">${brl(d.fat)}</td><td class="r">${brl(d.tk)}</td><td class="r"><span class="pill ${d.tx>28?'pr':d.tx>22?'pa':'pg'}">${pct(d.tx)}</span></td></tr>`).join('');
+  $('d-turno').innerHTML=r.turnos.map(t=>`<tr><td>${t.t}</td><td class="r">${t.n}</td><td class="r">${brl(t.tk)}</td><td class="r"><span class="pill ${t.tx>35?'pr':t.tx>28?'pa':'pg'}">${pct(t.tx)}</span></td></tr>`).join('');
+
+  const mH=Math.max(...r.horas.map(h=>h.n));
+  $('d-hora').innerHTML=r.horas.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px"><span style="min-width:28px;color:var(--text2)">${h.h}h</span><div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:${h.n/mH*100}%;height:100%;background:var(--text);border-radius:3px"></div></div><span style="min-width:20px;font-weight:500">${h.n}</span><span style="min-width:70px;text-align:right;color:var(--text2)">${brl(h.tk)}</span></div>`).join('');
+
+  $('d-log').innerHTML=r.logs.map(l=>`<tr><td>${l.tipo}</td><td class="r">${l.n}</td><td class="r">${brl(l.fat)}</td><td class="r">${brl(l.tk)}</td><td class="r"><span class="pill ${l.tx>35?'pr':l.tx>25?'pa':'pg'}">${pct(l.tx)}</span></td></tr>`).join('');
+  const p2=r.logs.find(l=>l.tipo==='Entrega própria'),f2=r.logs.find(l=>l.tipo==='Entrega Flex (iFood)');
+  if(p2&&f2)$('d-log-i').innerHTML=`<div class="al aw">Entrega Flex custa ${pct(f2.tx-p2.tx)} a mais que a entrega própria. Considere esse custo ao decidir qual logística usar.</div>`;
+}
+
+async function analisar(){
+  $('err').style.display='none';$('su').classList.add('hidden');$('sl').classList.remove('hidden');$('lmsg').textContent='Lendo os arquivos...';
+  try{
+    const[pR,cR]=await Promise.all([readXlsx(files.ped),readXlsx(files.conc)]);
+    $('lmsg').textContent='Calculando indicadores...';
+    await new Promise(r=>setTimeout(r,60));
+    render(parse(pR,cR));
+  }catch(e){showErr(e.message||'Erro ao processar os arquivos. Verifique se enviou os relatórios corretos.');}
+}
+</script>
+</body>
+</html>
